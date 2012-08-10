@@ -13,32 +13,11 @@ abstract class Pickler[T] {
 
 object Pickler {
 
-  def int2ByteArray(value: Int): Array[Byte] = {
-    ByteBuffer.allocate(4).putInt(value).array()
-  }
-
-  def byteArray2Int(arr: Array[Byte]): Int = {
-    ByteBuffer.wrap(arr).getInt()
-  }
-
-  // // converting an Int to an Array[Byte]
-  // def int2ByteArray(value: Int): Array[Byte] = {
-  //   val fst = (value >>> 24).asInstanceOf[Byte]
-  //   val snd = (value >> 16 & 0xff).asInstanceOf[Byte]
-  //   val thrd = (value >> 8 & 0xff).asInstanceOf[Byte]
-  //   val frth = (value & 0xff).asInstanceOf[Byte]
-  //   Array[Byte](fst, snd, thrd, frth)
-  // }
-
-  // def byteArray2Int(arr: Array[Byte]): Int = {
-  //   (arr(0) << 24) + (arr(1) << 16) + (arr(2) << 8) + arr(3)
-  // }
-
   implicit val intPickler: Pickler[Int] = new Pickler[Int] {
     def pickle(arr: Array[Byte], i: Int, value: Int): Int = {
       val fst = (value >>> 24).asInstanceOf[Byte]
-      val snd = (value >> 16 & 0xff).asInstanceOf[Byte]
-      val thrd = (value >> 8 & 0xff).asInstanceOf[Byte]
+      val snd = (value >>> 16 & 0xff).asInstanceOf[Byte]
+      val thrd = (value >>> 8 & 0xff).asInstanceOf[Byte]
       val frth = (value & 0xff).asInstanceOf[Byte]
       arr(i) = fst
       arr(i+1) = snd
@@ -47,7 +26,11 @@ object Pickler {
       i+4
     }
     def unpickle(arr: Array[Byte], i: Int): (Int, Int) = {
-      ((arr(i) << 24) + (arr(i+1) << 16) + (arr(i+2) << 8) + arr(i+3), i+4)
+      val fst = (arr(i) << 24).toInt
+      val snd = ((arr(i+1) << 16) & 0x00FFFFFF).toInt
+      val thrd = ((arr(i+2) << 8) & 0x0000FFFF).toInt
+      val frth = (arr(i+3) & 0x000000FF).toInt
+      (fst | snd | thrd | frth, i+4)
     }
   }
 
