@@ -1,19 +1,15 @@
 
-import java.io.ObjectOutputStream 
+import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, ObjectOutputStream, ObjectInputStream }
 
 object JavaSerializationListBench extends testing.Benchmark {
   val lst = (1 to 100000).toList
 
   override def run() = {
-
+    val bos = new ByteArrayOutputStream()
+    val out = new ObjectOutputStream(bos)    
+    out.writeObject(lst)
+    val bis = new ByteArrayInputStream(bos.toByteArray())
+    val in = new ObjectInputStream(bis)
+    val res = in.readObject.asInstanceOf[List[Int]]
   }
 }
-
-
-// MyClass object1 = new MyClass("Hello", -7, 2.7e10); 
-// System.out.println("object1: " + object1); 
-// FileOutputStream fos = new FileOutputStream("serial"); 
-// ObjectOutputStream oos = new ObjectOutputStream(fos); 
-// oos.writeObject(object1); 
-// oos.flush(); 
-// oos.close();
