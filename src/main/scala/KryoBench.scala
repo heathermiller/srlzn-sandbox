@@ -47,6 +47,8 @@ object KryoVectorBench extends testing.Benchmark {
   val ser = new KryoSerializer
 
   override def run() {
-    val res = ser.fromBytes[Vector[Int]](ser.toBytes(vec))
+    val pickled = ser.toBytes(vec)
+    // println("Size: "+pickled.length)
+    val res = ser.fromBytes[Vector[Int]](pickled)
   } 
 }

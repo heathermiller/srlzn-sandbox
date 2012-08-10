@@ -34,6 +34,7 @@ object PicklerListBench extends testing.Benchmark {
 
   override def run() {
     listPickler[Int].pickle(arr, 0, lst)
+    // println("Size: "+arr.length)
     val res = listPickler[Int].unpickle(arr, 0)
   } 
 }
@@ -45,6 +46,7 @@ object PicklerUnsafeListBench extends testing.Benchmark {
 
   override def run() {
     UnsafePickler.unsafeListPickler[Int].pickle(arr, 0, lst)
+    // println("Size: "+arr.length)
     val res = UnsafePickler.unsafeListPickler[Int].unpickle(arr, 0)
   } 
 }
@@ -59,12 +61,3 @@ object PicklerSeqListBench extends testing.Benchmark {
     val res = seqPickler[Int].unpickle(arr, 0)
   } 
 }
-
-// object PicklerVectorBench extends testing.Benchmark {
-//   val vec = Vector() ++ (1 to 100000)
-//   val ser = new KryoSerializer
-
-//   override def run() {
-//     val res = ser.fromBytes[Vector[Int]](ser.toBytes(vec))
-//   } 
-// }

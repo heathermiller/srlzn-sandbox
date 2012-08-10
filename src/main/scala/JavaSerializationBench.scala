@@ -8,7 +8,9 @@ object JavaSerializationListBench extends testing.Benchmark {
     val bos = new ByteArrayOutputStream()
     val out = new ObjectOutputStream(bos)    
     out.writeObject(lst)
-    val bis = new ByteArrayInputStream(bos.toByteArray())
+    val ba = bos.toByteArray()
+    // println("Bytes: " + ba.length)
+    val bis = new ByteArrayInputStream(ba)
     val in = new ObjectInputStream(bis)
     val res = in.readObject.asInstanceOf[List[Int]]
   }
