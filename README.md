@@ -7,4 +7,8 @@
     [info] Running PicklerListBench 5
     PicklerListBench$ 43  5 6 7 9
 
+    [info] Running PicklerUnsafeListBench 5
+    PicklerUnsafeListBench$	23	14	3	3	3
+
+
 

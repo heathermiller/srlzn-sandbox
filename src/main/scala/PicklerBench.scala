@@ -1,6 +1,6 @@
-import Pickler._
 
 object PicklerTest extends App {
+  import Pickler._
   val arr: Array[Byte] = Array.fill[Byte](1000)(0)
   intPickler.pickle(arr, 0, 12)
   println(intPickler.unpickle(arr, 0)._1)
@@ -28,6 +28,7 @@ object PicklerTest extends App {
 }
 
 object PicklerListBench extends testing.Benchmark {
+  import Pickler._
   val lst = (1 to 100000).toList
   val arr: Array[Byte] = Array.fill[Byte](lst.length * 4 + 4)(0)
 
@@ -37,7 +38,19 @@ object PicklerListBench extends testing.Benchmark {
   } 
 }
 
+object PicklerUnsafeListBench extends testing.Benchmark {
+  import UnsafePickler._
+  val lst = (1 to 100000).toList
+  val arr: Array[Byte] = Array.fill[Byte](lst.length * 4 + 4)(0)
+
+  override def run() {
+    UnsafePickler.unsafeListPickler[Int].pickle(arr, 0, lst)
+    val res = UnsafePickler.unsafeListPickler[Int].unpickle(arr, 0)
+  } 
+}
+
 object PicklerSeqListBench extends testing.Benchmark {
+  import Pickler._
   val lst = (1 to 100000).toList
   val arr: Array[Byte] = Array.fill[Byte](lst.length * 4 + 4)(0)
 
