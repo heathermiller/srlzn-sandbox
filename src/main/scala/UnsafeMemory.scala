@@ -1,7 +1,7 @@
 
 object UnsafeMemory {
 
-  val unsafe: sun.misc.Unsafe = Unsafe.instance
+  val unsafe: sun.misc.Unsafe = sun.misc.Unsafe.getUnsafe()
   val byteArrayOffset: Long = unsafe.arrayBaseOffset(classOf[Array[Byte]])
 
   def putInt(buffer: Array[Byte], pos: Int, value: Int): Unit = {

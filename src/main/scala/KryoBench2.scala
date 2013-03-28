@@ -13,7 +13,7 @@ import de.javakaffee.kryoserializers.KryoReflectionFactorySupport
 
 import scala.collection.mutable.Builder
 
-class KryoSerializer {
+class KryoSerializer2(arr: Array[Byte]) {
   val kryo = //new KryoReflectionFactorySupport
     new Kryo
 
@@ -23,9 +23,10 @@ class KryoSerializer {
 
   // kryo.addDefaultSerializer(mf.erasure, new TraversableSerializer(List.newBuilder[Any]))
 
+  val op = new Output(arr, Int.MaxValue)
+
   // serialize
-  def toBytes[T](obj: T, buffer: Array[Byte]): Array[Byte] = {
-    val op = new Output(buffer, Int.MaxValue)
+  def toBytes[T](obj: T): Array[Byte] = {
     kryo.writeClassAndObject(op, obj)
     op.flush()
     val bytes = op.toBytes()
@@ -79,10 +80,10 @@ class KryoSerializer {
   kryo.register(Nil.getClass, new SingletonSerializer[AnyRef](Nil))
 }
 
-object KryoListBench extends testing.Benchmark {
+object KryoListBench2 extends testing.Benchmark {
   val size = System.getProperty("size").toInt
   val lst = (1 to size).toList
-  var ser: KryoSerializer = _
+  var ser: KryoSerializer2 = _
 
   override def tearDown() {
     ser = null
@@ -90,16 +91,17 @@ object KryoListBench extends testing.Benchmark {
 
   override def run() {
     val rnd: Int = Random.nextInt(10)
-    val arr = Array.ofDim[Byte](32 * 2048 * 2048 + rnd)
-    ser = new KryoSerializer
+    val bufsize = 32 * 2048 * 2048 + rnd
+    val arr = Array.ofDim[Byte](4 + rnd)
+    ser = new KryoSerializer2(arr)
 
-    val pickled = ser.toBytes(lst, arr)
+    val pickled = ser.toBytes(lst)
     // println("Size: " + pickled.length)
     val res = ser.fromBytes[List[Int]](pickled)
   }
 }
 
-object KryoVectorBench extends testing.Benchmark {
+object KryoVectorBench2 extends testing.Benchmark {
   val vec = Vector() ++ (1 to 100000)
   var ser: KryoSerializer = _
 
