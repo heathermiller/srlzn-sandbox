@@ -1,0 +1,4 @@
+com.esotericsoftware.kryo
+com.esotericsoftware.kryo.io
+com.esotericsoftware.kryo.serializers
+com.esotericsoftware.kryo.util
