@@ -1,6 +1,5 @@
 
 import java.nio.ByteBuffer
-import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 import scala.collection.immutable.Vector
 import scala.collection.mutable.ListBuffer
 
@@ -22,90 +21,47 @@ class KryoSerializer {
 
   // kryo.addDefaultSerializer(mf.erasure, new TraversableSerializer(List.newBuilder[Any]))
 
-  var in: Input = null
-  var out: Output = null
-
-  val outstream = new ByteArrayOutputStream()
-
-  // val op = new Output(256, 2048 * 2048)
+  val op = new Output(256, 2048 * 2048)
   // val buf = new ObjectBuffer(kryo, 1024 * 1024)
 
   // serialize
   def toBytes[T](obj: T): Array[Byte] = {
-    var res: Array[Byte] = null
-    try {
-      out = new Output(outstream)
-      kryo.writeClassAndObject(out, obj)
-    }
-    finally {
-      res = out.toBytes
-      out.close()
-    }
-    res
+    kryo.writeClassAndObject(op, obj)
+    op.getBuffer()
   }
 
   // deserialize
   def fromBytes[T](arr: Array[Byte]): T = {
-    in = null
-    var newObj: Option[T] = None
-    try {
-      in = new Input(new ByteArrayInputStream(arr))
-      newObj = Some(kryo.readClassAndObject(in).asInstanceOf[T])
-    }
-    finally {
-      in.close()
-    }
-    newObj.get
+    val ip = new Input(arr)
+    kryo.readClassAndObject(ip).asInstanceOf[T]
   }
 
   class TraversableSerializer[T, C <: Traversable[T]](builder: Builder[T, C],
     override val isImmutable: Boolean = true)
     extends KSerializer[C] {
 
-    var in: Input = null
-    var out: Output = null
-
-    val outstream = new ByteArrayOutputStream()
-
-    def write(kser: Kryo, op: Output, obj: C) {
-      println("i swear i called write")
-      var res: Array[Byte] = null
-      try {
-        out = new Output(outstream)
-        out.writeInt(obj.size, true)
-        obj.foreach { t  =>
-          val tRef = t.asInstanceOf[AnyRef]
-          kser.writeClassAndObject(out, tRef)
-          // After each intermediate object, flush
-        }
+    def write(kser: Kryo, out: Output, obj: C) {
+      //Write the size:
+      out.writeInt(obj.size, true)
+      obj.foreach { t  =>
+        val tRef = t.asInstanceOf[AnyRef]
+        kser.writeClassAndObject(out, tRef)
+        // After each intermediate object, flush
+        out.flush
       }
-      finally {
-        res = out.toBytes
-        out.close()
-      }
-      res
     }
 
-    def read(kser: Kryo, ip: Input, cls: Class[C]): C = {
-      in = null
-      var newObj: Option[C] = None
-      try {
-        in = new Input(new ByteArrayInputStream(outstream.toByteArray))
-        val size = in.readInt(true)
-        // Go ahead and be faster, and not as functional cool, and be mutable in here
-        val asArray = new Array[AnyRef](size)
-        var idx = 0
-        while(idx < size) { asArray(idx) = kser.readClassAndObject(in); idx += 1 }
-        // the builder is shared, so only one Serializer at a time should use it:
-        // That the array of T is materialized, build:
-        builder.clear()
-        asArray.foreach { item => builder += item.asInstanceOf[T] }
-        newObj = Some(builder.result())
-      }
-      finally {
-        in.close()
-      }
-      newObj.get
+    def read(kser: Kryo, in: Input, cls: Class[C]): C = {
+      val size = in.readInt(true)
+      // Go ahead and be faster, and not as functional cool, and be mutable in here
+      val asArray = new Array[AnyRef](size)
+      var idx = 0
+      while(idx < size) { asArray(idx) = kser.readClassAndObject(in); idx += 1 }
+      // the builder is shared, so only one Serializer at a time should use it:
+      // That the array of T is materialized, build:
+      builder.clear()
+      asArray.foreach { item => builder += item.asInstanceOf[T] }
+      builder.result()
     }
   }
   kryo.register(List(1).getClass, new TraversableSerializer(List.newBuilder[Int]))
@@ -133,10 +89,9 @@ object KryoListBench extends testing.Benchmark {
 
 object KryoVectorBench extends testing.Benchmark {
   val vec = Vector() ++ (1 to 100000)
+  val ser = new KryoSerializer
 
   override def run() {
-    val ser = new KryoSerializer
-    ser.out = null
     val pickled = ser.toBytes(vec)
     // println("Size: "+pickled.length)
     val res = ser.fromBytes[Vector[Int]](pickled)
