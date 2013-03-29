@@ -28,36 +28,39 @@ object PicklerTest extends App {
 }
 
 object PicklerListBench extends testing.Benchmark {
+  val sz = System.getProperty("size").toInt
   import Pickler._
-  val lst = (1 to 100000).toList
+  val lst = (1 to sz).toList
   val arr: Array[Byte] = Array.fill[Byte](lst.length * 4 + 4)(0)
 
   override def run() {
     listPickler[Int].pickle(arr, 0, lst)
     // println("Size: "+arr.length)
     val res = listPickler[Int].unpickle(arr, 0)
-  } 
+  }
 }
 
 object PicklerUnsafeListBench extends testing.Benchmark {
+  val sz = System.getProperty("size").toInt
   import UnsafePickler._
-  val lst = (1 to 100000).toList
+  val lst = (1 to sz).toList
   val arr: Array[Byte] = Array.fill[Byte](lst.length * 4 + 4)(0)
 
   override def run() {
     UnsafePickler.unsafeListPickler[Int].pickle(arr, 0, lst)
     // println("Size: "+arr.length)
     val res = UnsafePickler.unsafeListPickler[Int].unpickle(arr, 0)
-  } 
+  }
 }
 
 object PicklerSeqListBench extends testing.Benchmark {
+  val sz = System.getProperty("size").toInt
   import Pickler._
-  val lst = (1 to 100000).toList
+  val lst = (1 to sz).toList
   val arr: Array[Byte] = Array.fill[Byte](lst.length * 4 + 4)(0)
 
   override def run() {
     seqPickler[Int].pickle(arr, 0, lst)
     val res = seqPickler[Int].unpickle(arr, 0)
-  } 
+  }
 }
