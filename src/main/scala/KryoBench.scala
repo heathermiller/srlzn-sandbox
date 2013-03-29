@@ -100,7 +100,8 @@ object KryoListBench extends testing.Benchmark {
 }
 
 object KryoVectorBench extends testing.Benchmark {
-  val vec = Vector() ++ (1 to 100000)
+  val size = System.getProperty("size").toInt
+  val vec = Vector() ++ (1 to size)
   var ser: KryoSerializer = _
 
   override def tearDown() {
