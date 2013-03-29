@@ -14,8 +14,8 @@ import de.javakaffee.kryoserializers.KryoReflectionFactorySupport
 import scala.collection.mutable.Builder
 
 class KryoSerializer {
-  val kryo = //new KryoReflectionFactorySupport
-    new Kryo
+  val kryo = new KryoReflectionFactorySupport
+    //new Kryo
 
   // registering some basic types to try to serialize
   val toRegister = Seq(Array(1.0), Array(1), (1, 1), Some(1), Array(new Object)/*, 1 :: Nil*/)
@@ -116,5 +116,35 @@ object KryoVectorBench extends testing.Benchmark {
     val pickled = ser.toBytes(vec, arr)
     // println("Size: "+pickled.length)
     val res = ser.fromBytes[Vector[Int]](pickled)
+  }
+}
+
+// taken from geotrellis:
+trait MutableRasterData
+trait IntBasedArray
+final case class IntArrayRasterData(array: Array[Int], cols: Int, rows: Int)
+  extends MutableRasterData with IntBasedArray
+
+object KryoGeoTrellisBench extends testing.Benchmark {
+  val size = System.getProperty("size").toInt
+  var ser: KryoSerializer = _
+  println("alloc new arr of size " + size)
+  val coll = (1 to size).toArray
+  val data = IntArrayRasterData(coll, 64, 64)
+
+  override def tearDown() {
+    ser = null
+  }
+
+  override def run() {
+    val rnd: Int = Random.nextInt(10)
+    //val arr = Array.ofDim[Byte](32 * 2048 * 2048 + rnd)
+    val arr = Array.ofDim[Byte](32 * 2048 + rnd)
+    ser = new KryoSerializer
+    ser.kryo.register(data.getClass)
+
+    val pickled = ser.toBytes(data, arr)
+    // println("Size: " + pickled.length)
+    val res = ser.fromBytes[IntArrayRasterData](pickled)
   }
 }

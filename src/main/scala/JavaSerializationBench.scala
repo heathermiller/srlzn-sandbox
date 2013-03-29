@@ -20,6 +20,26 @@ object JavaSerializationListBench extends testing.Benchmark {
   }
 }
 
+object JavaSerializationGeoTrellisBench extends testing.Benchmark {
+  val size = System.getProperty("size").toInt
+
+  val coll = (1 to size).toArray
+  val data = IntArrayRasterData(coll, 64, 64)
+
+  override def run() = {
+    val bos = new ByteArrayOutputStream()
+    val out = new ObjectOutputStream(bos)    
+
+    out.writeObject(data)
+    val ba = bos.toByteArray()
+
+    // println("Bytes: " + ba.length)
+    val bis = new ByteArrayInputStream(ba)
+    val in = new ObjectInputStream(bis)
+    val res = in.readObject.asInstanceOf[IntArrayRasterData]
+  }
+}
+
 object JavaSerializationEvactorBench extends testing.Benchmark {
   val size = System.getProperty("size").toInt
   //val lst = (1 to size).toList
